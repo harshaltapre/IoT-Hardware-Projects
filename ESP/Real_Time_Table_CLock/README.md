@@ -1,24 +1,21 @@
-# ⏰ ESP32 TFT Real-Time Clock
+#  ESP32 TFT Real-Time Clock
 
 This project is a **custom-made animated desk clock** built using an **ESP32 NodeMCU-32S**, **1.8-inch ST7735 TFT display**, and an **RTC module**.  
 It features **smooth animations**, **multiple clock faces**, and a **fun, interactive design** that makes telling time more exciting.
 
 ---
 
-## 📸 Project Images
+## Project Images
 
 ### Clock Faces & Animations
 ![Clock Face](images/face.png)
-
-### Clock in Action
-![Clock Display](images/Hardwareimage.jpg)
 
 ### Hardware Setup
 ![Hardware Setup](images/hardare.jpg)
 
 ---
 
-## 📌 Features
+## Features
 ✅ Real-time clock display using an RTC module  
 ✅ Animated transitions between different clock faces  
 ✅ Runs entirely on ESP32 NodeMCU-32S (USB powered)  
@@ -27,7 +24,7 @@ It features **smooth animations**, **multiple clock faces**, and a **fun, intera
 
 ---
 
-## 🛠 Hardware Required
+##  Hardware Required
 - **ESP32 NodeMCU-32S**
 - **1.8-inch ST7735 TFT Display**
 - **DS3231 / DS1307 RTC Module**
@@ -36,7 +33,7 @@ It features **smooth animations**, **multiple clock faces**, and a **fun, intera
 
 ---
 
-## 🔌 Wiring Diagram
+##  Wiring Diagram
 
 **TFT Display to ESP32**
 | TFT Pin | ESP32 Pin |
@@ -59,7 +56,7 @@ It features **smooth animations**, **multiple clock faces**, and a **fun, intera
 
 ---
 
-## 📷 How It Works
+##  How It Works
 1. **RTC Module** keeps accurate time even when the ESP32 is powered off.  
 2. **ESP32** reads the time and sends it to the **TFT display**.  
 3. Clock **faces change with animations** to make the display interactive.  
@@ -67,7 +64,7 @@ It features **smooth animations**, **multiple clock faces**, and a **fun, intera
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 1. Install **Arduino IDE** and add **ESP32 board support**.
 2. Install these libraries:
    - `WiFi.h`
