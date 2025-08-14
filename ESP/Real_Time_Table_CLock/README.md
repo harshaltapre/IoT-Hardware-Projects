@@ -83,7 +83,7 @@ It features **smooth animations**, **multiple clock faces**, and a **fun, intera
 
 ## 👨‍💻 Author
 **Harshal Tapre**  
-🔗 [GitHub](https://github.com/harshaltapre) | [LinkedIn](https://linkedin.com/in/harshaltapre)
+🔗 [GitHub](https://github.com/harshaltapre) | [LinkedIn](https://www.linkedin.com/in/harshal-tapre-650a1b251/)
 
 ---
 
