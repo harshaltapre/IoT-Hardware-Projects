@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 #  ESP32 TFT Real-Time Clock
 
 This project is a **custom-made animated desk clock** built using an **ESP32 NodeMCU-32S**, **1.8-inch ST7735 TFT display**, and an **RTC module**.  
@@ -69,6 +70,8 @@ It features **smooth animations**, **multiple clock faces**, and a **fun, intera
 1. Install **Arduino IDE** and add **ESP32 board support**.
 2. Install these libraries:
 =======
+=======
+>>>>>>> 43822bfa49c21441759bb67f80e563e9e6ed706b
 # ⏰ ESP32 TFT Real-Time Clock
 
 This project is a custom-made digital clock built with ESP32 NodeMCU-32S, a 1.8-inch ST7735 TFT display, and a Real-Time Clock (RTC) module.  
@@ -135,12 +138,16 @@ RTC Module Connection
 ## 🚀 Getting Started
 1. Install Arduino IDE and add ESP32 board support.
 2. Install the following libraries
+<<<<<<< HEAD
 >>>>>>> 48aa02d (Added ESP32 project files)
+=======
+>>>>>>> 43822bfa49c21441759bb67f80e563e9e6ed706b
    - `WiFi.h`
    - `WebServer.h`
    - `Adafruit_GFX.h`
    - `Adafruit_ST7735.h`
    - `RTClib.h`
+<<<<<<< HEAD
 <<<<<<< HEAD
 3. Connect components according to the wiring table above.
 4. Upload the `.ino` file to your ESP32.
@@ -150,10 +157,16 @@ RTC Module Connection
 4. Upload the `.ino` file to your ESP32.
 5. Power it via USB and enjoy your custom digital clock.
 >>>>>>> 48aa02d (Added ESP32 project files)
+=======
+3. Connect the components according to the wiring table above.
+4. Upload the `.ino` file to your ESP32.
+5. Power it via USB and enjoy your custom digital clock.
+>>>>>>> 43822bfa49c21441759bb67f80e563e9e6ed706b
 
 ---
 
 ## 👨‍💻 Author
+<<<<<<< HEAD
 <<<<<<< HEAD
 **Harshal Tapre**  
 🔗 [GitHub](https://github.com/harshaltapre) | [LinkedIn](https://www.linkedin.com/in/harshal-tapre-650a1b251/)
@@ -162,10 +175,15 @@ RTC Module Connection
 
 💡 *Tip:* Keep all images in an `images` folder inside your GitHub repo for them to display correctly.
 =======
+=======
+>>>>>>> 43822bfa49c21441759bb67f80e563e9e6ed706b
 Harshal Tapre  
 🔗 [GitHub](httpsgithub.comharshaltapre)  [LinkedIn](httpslinkedin.cominharshaltapre)
 
 ---
 
  💡 Tip Put your images in a folder called `images` in your GitHub repo, and update the file names in the `![ ](images...)` links above so they show correctly.
+<<<<<<< HEAD
 >>>>>>> 48aa02d (Added ESP32 project files)
+=======
+>>>>>>> 43822bfa49c21441759bb67f80e563e9e6ed706b
