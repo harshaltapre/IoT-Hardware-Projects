@@ -10,7 +10,7 @@ A custom-made animated digital desk clock built with ESP32 NodeMCU-32S, 1.8-inch
 ![Clock Face](images/face.png)
 
 ### Hardware Setup  
-![Hardware Setup](images/hardware.jpg)
+![Hardware Setup](images/Hardwareimage .jpg)
 
 ---
 
