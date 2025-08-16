@@ -6,11 +6,11 @@ A custom-made animated digital desk clock built with ESP32 NodeMCU-32S, 1.8-inch
 
 ## Project Images
 
-### Clock in Action
-![Clock Display](images/clock_display.jpg)
+### Clock Face
+![Clock Face](images/face.png)
 
 ### Hardware Setup  
-![Hardware Setup](images/hardware_setup.jpg)
+![Hardware Setup](images/hardware.jpg)
 
 ---
 
@@ -103,8 +103,8 @@ ESP32-TFT-Clock/
 ├── ESP32_TFT_Clock.ino     # Main Arduino sketch
 ├── README.md               # This file
 └── images/                 # Project photos
-    ├── clock_display.jpg
-    └── hardware_setup.jpg
+    ├── face.png
+    └── hardware.jpg
 ```
 
 ---
