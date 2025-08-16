@@ -1,189 +1,173 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-#  ESP32 TFT Real-Time Clock
+# ESP32 TFT Real-Time Clock
 
-This project is a **custom-made animated desk clock** built using an **ESP32 NodeMCU-32S**, **1.8-inch ST7735 TFT display**, and an **RTC module**.  
-It features **smooth animations**, **multiple clock faces**, and a **fun, interactive design** that makes telling time more exciting.
+A custom-made animated digital desk clock built with ESP32 NodeMCU-32S, 1.8-inch ST7735 TFT display, and RTC module. Features smooth animations, multiple clock faces, and an interactive design that makes telling time more exciting.
 
 ---
 
 ## Project Images
 
-### Clock Faces & Animations
+### Clock Face
 ![Clock Face](images/face.png)
 
-### Hardware Setup
-![Hardware Setup](images/hardare.jpg)
+### Hardware Setup  
+![Hardware Setup](images/Hardwareimage.jpg)
 
 ---
 
 ## Features
-✅ Real-time clock display using an RTC module  
-✅ Animated transitions between different clock faces  
-✅ Runs entirely on ESP32 NodeMCU-32S (USB powered)  
-✅ Colorful, high-contrast TFT graphics  
-✅ Simple and compact breadboard build  
+
+- Real-time clock display using DS3231/DS1307 RTC module
+- Animated transitions between different clock faces  
+- USB powered - runs entirely on ESP32 NodeMCU-32S
+- Colorful TFT graphics with high contrast display
+- Compact design - simple breadboard build
+- Auto face-changing - keeps the display fresh and engaging
 
 ---
 
-##  Hardware Required
-- **ESP32 NodeMCU-32S**
-- **1.8-inch ST7735 TFT Display**
-- **DS3231 / DS1307 RTC Module**
-- **Jumper Wires**
-- **Breadboard** (optional for prototyping)
+## Hardware Required
+
+| Component | Description |
+|-----------|-------------|
+| **ESP32 NodeMCU-32S** | Main microcontroller |
+| **1.8" ST7735 TFT Display** | 128x160 color display |
+| **DS3231/DS1307 RTC Module** | Real-time clock with battery backup |
+| **Jumper Wires** | For connections |
+| **Breadboard** | For prototyping (optional) |
 
 ---
 
-##  Wiring Diagram
+## Wiring Connections
 
-**TFT Display to ESP32**
-| TFT Pin | ESP32 Pin |
-|---------|-----------|
-| VCC     | 3.3V      |
-| GND     | GND       |
-| CS      | GPIO 5    |
-| RST     | GPIO 4    |
-| DC      | GPIO 2    |
-| SCLK    | GPIO 18   |
-| MOSI    | GPIO 23   |
+### TFT Display (ST7735) to ESP32
+| TFT Pin | ESP32 Pin | Description |
+|---------|-----------|-------------|
+| VCC     | 3.3V      | Power supply |
+| GND     | GND       | Ground |
+| CS      | GPIO 5    | Chip Select |
+| RST     | GPIO 4    | Reset |
+| DC      | GPIO 2    | Data/Command |
+| SCLK    | GPIO 18   | SPI Clock |
+| MOSI    | GPIO 23   | SPI Data |
 
-**RTC Module to ESP32**
-| RTC Pin | ESP32 Pin |
-|---------|-----------|
-| VCC     | 3.3V      |
-| GND     | GND       |
-| SDA     | GPIO 21   |
-| SCL     | GPIO 22   |
-
----
-
-##  How It Works
-1. **RTC Module** keeps accurate time even when the ESP32 is powered off.  
-2. **ESP32** reads the time and sends it to the **TFT display**.  
-3. Clock **faces change with animations** to make the display interactive.  
-4. Device runs fully **USB powered**, making it portable.
+### RTC Module to ESP32
+| RTC Pin | ESP32 Pin | Description |
+|---------|-----------|-------------|
+| VCC     | 3.3V      | Power supply |
+| GND     | GND       | Ground |
+| SDA     | GPIO 21   | I2C Data |
+| SCL     | GPIO 22   | I2C Clock |
 
 ---
 
-##  Getting Started
-1. Install **Arduino IDE** and add **ESP32 board support**.
-2. Install these libraries:
-=======
-=======
->>>>>>> 43822bfa49c21441759bb67f80e563e9e6ed706b
-# ⏰ ESP32 TFT Real-Time Clock
+## How It Works
 
-This project is a custom-made digital clock built with ESP32 NodeMCU-32S, a 1.8-inch ST7735 TFT display, and a Real-Time Clock (RTC) module.  
-It features smooth animations and multiple clock faces that change over time — making it not just functional, but fun to watch.
+1. **RTC Module** maintains accurate time even when ESP32 is powered off (thanks to backup battery)
+2. **ESP32** reads time data from RTC via I2C communication
+3. **TFT Display** renders the current time with animated clock faces
+4. **Auto-cycling** between different visual styles keeps the display engaging
+5. **USB Power** makes it completely portable - just plug and go
 
 ---
 
-## 📸 Project Images
+## Getting Started
 
-### Clock in Action
-![Clock Display](imagesclock_display.jpg)
+### Prerequisites
+- Arduino IDE installed
+- ESP32 board package added to Arduino IDE
 
-### Hardware Setup
-![Hardware Setup](imageshardware_setup.jpg)
+### Required Libraries
+Install these libraries through Arduino IDE Library Manager:
 
----
+```
+- WiFi.h (ESP32 Core)
+- WebServer.h (ESP32 Core) 
+- Adafruit_GFX.h
+- Adafruit_ST7735.h
+- RTClib.h
+```
 
-## 📌 Features
-✅ Real-time clock display using an RTC module  
-✅ Animated transitions between different clock faces  
-✅ Runs entirely on ESP32 NodeMCU-32S (USB powered)  
-✅ Bright and colorful display with ST7735 TFT  
-
----
-
-## 🛠 Hardware Required
-- ESP32 NodeMCU-32S
-- 1.8-inch ST7735 TFT Display
-- DS3231 or DS1307 RTC Module
-- Jumper wires
-- Breadboard (optional)
-
----
-
-## 🔌 Wiring Diagram
-
- TFT Pin   ESP32 Pin 
----------------------
- VCC       3.3V      
- GND       GND       
- CS        GPIO 5    
- RST       GPIO 4    
- DC        GPIO 2    
- SCLK      GPIO 18   
- MOSI      GPIO 23   
-
-RTC Module Connection
- RTC Pin   ESP32 Pin 
----------------------
- VCC       3.3V      
- GND       GND       
- SDA       GPIO 21   
- SCL       GPIO 22   
+### Setup Steps
+1. **Clone or Download** this repository
+2. **Install libraries** listed above
+3. **Wire components** according to the connection table
+4. **Upload** the .ino file to your ESP32
+5. **Power via USB** and enjoy your animated clock
 
 ---
 
-## 📷 How It Works
-1. The RTC module keeps track of accurate time even when the ESP32 is off.
-2. The TFT display shows the current time in different designs, changing automatically.
-3. The ESP32 updates the display every second with smooth animations.
+## Project Structure
+
+```
+ESP32-TFT-Clock/
+├── ESP32_TFT_Clock.ino     # Main Arduino sketch
+├── README.md               # This file
+└── images/                 # Project photos
+    ├── face.png
+    └── hardware.jpg
+```
 
 ---
 
-## 🚀 Getting Started
-1. Install Arduino IDE and add ESP32 board support.
-2. Install the following libraries
-<<<<<<< HEAD
->>>>>>> 48aa02d (Added ESP32 project files)
-=======
->>>>>>> 43822bfa49c21441759bb67f80e563e9e6ed706b
-   - `WiFi.h`
-   - `WebServer.h`
-   - `Adafruit_GFX.h`
-   - `Adafruit_ST7735.h`
-   - `RTClib.h`
-<<<<<<< HEAD
-<<<<<<< HEAD
-3. Connect components according to the wiring table above.
-4. Upload the `.ino` file to your ESP32.
-5. Enjoy your custom **animated real-time clock**.
-=======
-3. Connect the components according to the wiring table above.
-4. Upload the `.ino` file to your ESP32.
-5. Power it via USB and enjoy your custom digital clock.
->>>>>>> 48aa02d (Added ESP32 project files)
-=======
-3. Connect the components according to the wiring table above.
-4. Upload the `.ino` file to your ESP32.
-5. Power it via USB and enjoy your custom digital clock.
->>>>>>> 43822bfa49c21441759bb67f80e563e9e6ed706b
+## Clock Faces
+
+The clock automatically cycles through different visual styles:
+- Digital display with large numbers
+- Animated transitions between face changes
+- Color variations to keep it visually interesting
+- Smooth updates every second
 
 ---
 
-## 👨‍💻 Author
-<<<<<<< HEAD
-<<<<<<< HEAD
+## Customization
+
+You can easily modify:
+- **Clock face designs** - edit the display functions
+- **Animation speed** - adjust timing variables  
+- **Color schemes** - change the color definitions
+- **Face rotation timing** - modify the auto-change intervals
+
+---
+
+## Troubleshooting
+
+**Display not working?**
+- Check all wiring connections
+- Verify 3.3V power supply
+- Ensure correct GPIO pins are used
+
+**Time not accurate?**
+- RTC module needs initial time setting
+- Check I2C connections (SDA/SCL)
+- Verify RTC battery is installed
+
+**Compilation errors?**
+- Install all required libraries
+- Select correct ESP32 board in Arduino IDE
+
+---
+
+## License
+
+This project is open source. Feel free to modify and share.
+
+---
+
+## Author
+
 **Harshal Tapre**  
-🔗 [GitHub](https://github.com/harshaltapre) | [LinkedIn](https://www.linkedin.com/in/harshal-tapre-650a1b251/)
+GitHub: [https://github.com/harshaltapre](https://github.com/harshaltapre)  
+LinkedIn: [https://www.linkedin.com/in/harshal-tapre-650a1b251/](https://www.linkedin.com/in/harshal-tapre-650a1b251/)
 
 ---
 
-💡 *Tip:* Keep all images in an `images` folder inside your GitHub repo for them to display correctly.
-=======
-=======
->>>>>>> 43822bfa49c21441759bb67f80e563e9e6ed706b
-Harshal Tapre  
-🔗 [GitHub](httpsgithub.comharshaltapre)  [LinkedIn](httpslinkedin.cominharshaltapre)
+## Contributing
+
+Found a bug or have an improvement? Feel free to:
+- Open an issue
+- Submit a pull request
+- Share your custom clock faces
 
 ---
 
- 💡 Tip Put your images in a folder called `images` in your GitHub repo, and update the file names in the `![ ](images...)` links above so they show correctly.
-<<<<<<< HEAD
->>>>>>> 48aa02d (Added ESP32 project files)
-=======
->>>>>>> 43822bfa49c21441759bb67f80e563e9e6ed706b
+If you found this project helpful, please give it a star on GitHub.
