@@ -1,20 +1,4 @@
-/*
- * Stable ESP32 NodeMCU-32S TFT Clock with Multiple Clock Styles
- * Features: 5 different clock styles, smooth transitions, NO FLICKERING
- * 
- * Hardware: ESP32 NodeMCU-32S, 1.8" ST7735 TFT, DS3231 RTC
- * 
- * Pin Connections:
- * TFT Display (ST7735):
- * - VCC -> 3.3V
- * - GND -> GND  
- * - CLK -> GPIO18 (SCK)
- * - DIN -> GPIO23 (MOSI)
- * - CS  -> GPIO5
- * - D/C -> GPIO2
- * - RST -> GPIO4
- * - BL  -> 3.3V
- * 
+
  * RTC Module (DS3231):
  * - VCC -> 3.3V (or 5V if your module requires it)
  * - GND -> GND
