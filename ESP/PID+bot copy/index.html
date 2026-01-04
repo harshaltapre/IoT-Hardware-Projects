@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Motor driver: TB6612FNG (dual H-bridge) - note for firmware/hardware mapping -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+    <title>PID+Bot Dashboard</title>
+    <style>
+        /* Minimal, compact dark theme optimized for ESP AP */
+        :root{--bg:#0b0d10;--panel:#111214;--muted:#9aa3ad;--accent:#00c2a8;--danger:#ff6b6b;--glass:rgba(255,255,255,0.03)}
+        html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:var(--bg);color:#e6eef3;-webkit-tap-highlight-color:transparent}
+        .wrap{max-width:900px;margin:0 auto;padding:12px}
+        header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+        h1{font-size:1.05rem;margin:0;color:#fff}
+        .sub{color:var(--muted);font-size:0.78rem}
+
+        .panel{background:linear-gradient(180deg,var(--panel),#0d0f11);border-radius:12px;padding:12px;margin-bottom:10px;box-shadow:0 2px 0 rgba(255,255,255,0.02)}
+
+        .toggle-row{display:flex;align-items:center;gap:12px}
+        .toggle{display:inline-flex;align-items:center;background:var(--glass);padding:6px;border-radius:999px}
+        .toggle button{background:transparent;border:0;color:var(--muted);padding:8px 12px;border-radius:999px;font-weight:600}
+        .toggle button.active{background:rgba(0,0,0,0.35);color:var(--accent)}
+
+        .remote-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;align-items:center}
+        .btn{background:#121416;border-radius:12px;padding:18px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.05rem;border:1px solid rgba(255,255,255,0.03);user-select:none}
+        .btn.large{grid-column:1/4;padding:18px;border-radius:14px}
+        .btn.control{height:72px;border-radius:12px}
+        .btn:active{transform:translateY(1px)}
+        .btn.stop{background:var(--danger);color:#111}
+
+        .slider-row{display:flex;flex-direction:column;gap:10px}
+        .field{display:flex;align-items:center;gap:10px}
+        .field label{width:56px;color:var(--muted);font-size:0.85rem}
+        input[type=range]{-webkit-appearance:none;width:100%;height:8px;background:rgba(255,255,255,0.03);border-radius:999px}
+        input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);box-shadow:0 1px 0 rgba(0,0,0,0.5)}
+        .val{width:64px;text-align:right;color:#fff;font-weight:700}
+
+        .row{display:flex;gap:8px;align-items:center}
+        .chip{background:rgba(255,255,255,0.02);padding:8px 10px;border-radius:10px;color:var(--muted);font-size:0.85rem}
+
+        .telemetry{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+        .metric{background:rgba(255,255,255,0.02);padding:10px;border-radius:10px;text-align:center}
+        .metric .label{color:var(--muted);font-size:0.78rem}
+        .metric .value{font-weight:700;font-size:1.05rem;margin-top:6px}
+
+        @media (max-width:420px){.btn{padding:14px;font-size:1rem}.btn.control{height:64px}.row{flex-wrap:wrap}.field label{width:48px}}
+    </style>
+</head>
+<body>
+
+    <div class="wrap">
+        <header>
+            <div>
+                <h1>PID+Bot Dashboard</h1>
+                <div class="sub">Connect to 192.168.4.1 — Mobile-first · Low-latency</div>
+            </div>
+            <div class="sub">Dark · Instant</div>
+        </header>
+
+
+        <!-- Mode Panel -->
+        <section class="panel" id="modePanel">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+                <div>
+                    <strong>Mode</strong>
+                    <div class="sub">Switch between Manual and PID line-follower</div>
+                </div>
+                <div class="toggle-row">
+                    <div class="toggle" role="tablist" aria-label="Mode selector">
+                        <button id="btnManual" class="active" aria-pressed="true">Manual</button>
+                        <button id="btnPid" aria-pressed="false">PID</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Manual Controls -->
+        <section class="panel" id="manualPanel">
+            <div style="margin-bottom:8px"><strong>Manual Remote</strong> <span class="sub">Touch and hold to move; release to stop</span></div>
+            <div class="remote-grid" aria-label="Remote controls">
+                <div></div>
+                <div><div class="btn control" id="btnForward">▲</div></div>
+                <div></div>
+
+                <div><div class="btn control" id="btnLeft">◀</div></div>
+                <div><div class="btn large btn-stop" id="btnStop">STOP</div></div>
+                <div><div class="btn control" id="btnRight">▶</div></div>
+
+                <div></div>
+                <div><div class="btn control" id="btnBackward">▼</div></div>
+                <div></div>
+            </div>
+        </section>
+
+        <!-- PID Controls -->
+        <section class="panel" id="pidPanel" style="display:none">
+            <div style="margin-bottom:8px"><strong>PID Tuning</strong> <span class="sub">Live update via GET</span></div>
+            <div class="slider-row">
+                <div class="field">
+                    <label for="kp">Kp</label>
+                    <input id="kp" type="range" min="0" max="10" step="0.1" value="1.0">
+                    <div class="val" id="kpVal">1.0</div>
+                </div>
+                <div class="field">
+                    <label for="ki">Ki</label>
+                    <input id="ki" type="range" min="0" max="5" step="0.01" value="0.00">
+                    <div class="val" id="kiVal">0.00</div>
+                </div>
+                <div class="field">
+                    <label for="kd">Kd</label>
+                    <input id="kd" type="range" min="0" max="10" step="0.1" value="0.0">
+                    <div class="val" id="kdVal">0.0</div>
+                </div>
+            </div>
+
+            <div style="margin-top:12px" class="row">
+                <div class="chip">Base speed: <strong id="baseSpeed">MAX</strong></div>
+                <button id="accelToggle" class="chip" style="border:1px solid rgba(255,255,255,0.04);">Accel: OFF</button>
+            </div>
+        </section>
+
+        <!-- Telemetry (placeholders for future MQTT/HTTPS) -->
+        <section class="panel">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <strong>Telemetry</strong>
+                <div class="sub">Placeholders for sensors, motor speed, error, PID output</div>
+            </div>
+            <div class="telemetry">
+                <div class="metric"><div class="label">Sensor L</div><div class="value" id="sL">--</div></div>
+                <div class="metric"><div class="label">Sensor R</div><div class="value" id="sR">--</div></div>
+                <div class="metric"><div class="label">Error</div><div class="value" id="err">--</div></div>
+                <div class="metric"><div class="label">Motor SPD</div><div class="value" id="spd">--</div></div>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        /*
+            Lightweight dashboard script
+            - Uses GET fetch requests
+            - Default mode: manual
+            - No external libs
+        */
+
+        (function(){
+            // Quick helpers
+            const qs = s => document.querySelector(s);
+            const byId = id => document.getElementById(id);
+
+            // Panels and buttons
+            const btnManual = byId('btnManual');
+            const btnPid = byId('btnPid');
+            const manualPanel = byId('manualPanel');
+            const pidPanel = byId('pidPanel');
+
+            // Movement buttons
+            const btnF = byId('btnForward');
+            const btnB = byId('btnBackward');
+            const btnL = byId('btnLeft');
+            const btnR = byId('btnRight');
+            const btnStop = byId('btnStop');
+
+            // PID controls
+            const kp = byId('kp'), ki = byId('ki'), kd = byId('kd');
+            const kpVal = byId('kpVal'), kiVal = byId('kiVal'), kdVal = byId('kdVal');
+
+            // Accel
+            const accelBtn = byId('accelToggle');
+            let accelEnabled = false;
+
+            // Default mode
+            let mode = 'manual';
+
+            // Minimal fetch wrapper: GET only, no-cache
+            function sendGet(path){
+                // Use fetch with no storing and small timeout via AbortController
+                try{
+                    const controller = new AbortController();
+                    const signal = controller.signal;
+                    // Timeout 1800ms to avoid hung requests on low-memory AP
+                    const t = setTimeout(()=>controller.abort(),1800);
+                    fetch(path, {method:'GET',cache:'no-store',signal}).finally(()=>clearTimeout(t));
+                }catch(e){/* silent - network can be flaky */}
+            }
+
+            // Mode UI update
+            function setMode(m, notify=true){
+                mode = m;
+                const isManual = (m==='manual');
+                manualPanel.style.display = isManual ? '' : 'none';
+                pidPanel.style.display = isManual ? 'none' : '';
+                btnManual.classList.toggle('active', isManual);
+                btnPid.classList.toggle('active', !isManual);
+                btnManual.setAttribute('aria-pressed', isManual);
+                btnPid.setAttribute('aria-pressed', !isManual);
+                if(notify){
+                    sendGet('/mode?value=' + encodeURIComponent(m));
+                }
+            }
+
+            // Bind mode toggle
+            btnManual.addEventListener('click', ()=>setMode('manual'));
+            btnPid.addEventListener('click', ()=>setMode('pid'));
+
+            // Movement helpers: support touch and mouse; send Stop on release
+            function bindControl(el, dir){
+                const send = ()=> sendGet('/move?dir=' + encodeURIComponent(dir));
+                const stop = ()=> sendGet('/move?dir=S');
+
+                el.addEventListener('touchstart', e=>{ e.preventDefault(); send(); }, {passive:false});
+                el.addEventListener('mousedown', e=>{ e.preventDefault(); send(); });
+
+                // stop on touchend/touchcancel/mouseup/leave
+                ['touchend','touchcancel','mouseup','mouseleave'].forEach(ev=>
+                    el.addEventListener(ev, ()=>{ stop(); })
+                );
+            }
+
+            bindControl(btnF,'F');
+            bindControl(btnB,'B');
+            bindControl(btnL,'L');
+            bindControl(btnR,'R');
+            // Stop button: immediate stop on press
+            btnStop.addEventListener('click', ()=> sendGet('/move?dir=S'));
+            btnStop.addEventListener('touchstart', e=>{ e.preventDefault(); sendGet('/move?dir=S'); }, {passive:false});
+
+            // PID sliders: immediate updates with simple throttle
+            function liveSend(param, value){
+                sendGet('/pid?' + encodeURIComponent(param) + '=' + encodeURIComponent(value));
+            }
+
+            // Very small throttle using requestAnimationFrame pattern
+            function makeRafSender(param, displayEl, formatFn){
+                let pending = null; let last = null;
+                return function immediate(){
+                    const v = this.value;
+                    displayEl.textContent = formatFn ? formatFn(v) : v;
+                    if(pending) return; // one pending frame at most
+                    pending = requestAnimationFrame(()=>{
+                        pending = null; if(last===v) return; last=v; liveSend(param, v);
+                    });
+                };
+            }
+
+            kp.addEventListener('input', makeRafSender('kp', kpVal, v=>parseFloat(v).toFixed(1)));
+            ki.addEventListener('input', makeRafSender('ki', kiVal, v=>parseFloat(v).toFixed(2)));
+            kd.addEventListener('input', makeRafSender('kd', kdVal, v=>parseFloat(v).toFixed(1)));
+
+            // Accel toggle
+            accelBtn.addEventListener('click', ()=>{
+                accelEnabled = !accelEnabled;
+                accelBtn.textContent = 'Accel: ' + (accelEnabled ? 'ON' : 'OFF');
+                sendGet('/accel?enable=' + (accelEnabled ? '1' : '0'));
+            });
+
+            // Initialize UI defaults
+            setMode('manual', false); // default on load but do not notify (optionally change to true)
+
+            // Optional telemetry fetcher (commented — enable if firmware exposes /telemetry JSON)
+            /*
+            function fetchTelemetry(){
+                fetch('/telemetry',{cache:'no-store'}).then(r=>r.json()).then(d=>{
+                    byId('sL').textContent = d.sL ?? '--';
+                    byId('sR').textContent = d.sR ?? '--';
+                    byId('err').textContent = (d.err!=null) ? d.err : '--';
+                    byId('spd').textContent = d.spd ?? '--';
+                }).catch(()=>{});
+            }
+            setInterval(fetchTelemetry,1000);
+            */
+
+            // Expose a small debug method for console: setMode('pid')
+            window._pidbot = { setMode };
+        })();
+    </script>
+</body>
+</html>
+        <div style="width:12px"></div> <!-- Spacer for center alignment -->
+    </header>
+
+    <!-- Mode Switcher -->
+    <div class="mode-container" id="mode-switch" data-mode="manual">
+        <div class="mode-bg"></div>
+        <div class="mode-btn" data-target="manual" onclick="setMode('manual')">MANUAL</div>
+        <div class="mode-btn" data-target="pid" onclick="setMode('pid')">PID_TRK</div>
+        <div class="mode-btn" data-target="ai" onclick="setMode('ai')">AI_CMD</div>
+    </div>
+
+    <!-- MANUAL MODE PANEL -->
+    <div id="panel-manual" class="panel active">
+        
+        <!-- Console Body -->
+        <div class="console-body">
+            
+            <!-- Center Decoration -->
+            <div class="console-vents">
+                <div class="vent"></div><div class="vent"></div><div class="vent"></div>
+            </div>
+
+            <!-- Left Hand: Throttle (Up/Down) -->
+            <div class="pad-group">
+                <div class="pad-label">THRUST</div>
+                <button class="ctrl-btn btn-up" 
+                        ontouchstart="sendMove('F', this)" ontouchend="sendMove('S', this)" 
+                        onmousedown="sendMove('F', this)" onmouseup="sendMove('S', this)">
+                    <svg viewBox="0 0 24 24"><path d="M12 4l-8 8h16z"/></svg>
+                </button>
+                <div style="height:10px"></div>
+                <button class="ctrl-btn btn-down" 
+                        ontouchstart="sendMove('B', this)" ontouchend="sendMove('S', this)"
+                        onmousedown="sendMove('B', this)" onmouseup="sendMove('S', this)">
+                    <svg viewBox="0 0 24 24"><path d="M12 20l-8-8h16z"/></svg>
+                </button>
+            </div>
+
+            <!-- Center: Stop -->
+            <button class="ctrl-btn btn-stop stop" onclick="sendMove('S', this)" title="Emergency Stop">
+                <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12"/></svg>
+            </button>
+
+            <!-- Right Hand: Steering (Left/Right) -->
+            <div class="pad-group horizontal">
+                <button class="ctrl-btn btn-left" 
+                        ontouchstart="sendMove('L', this)" ontouchend="sendMove('S', this)"
+                        onmousedown="sendMove('L', this)" onmouseup="sendMove('S', this)">
+                    <svg viewBox="0 0 24 24"><path d="M4 12l8-8v16z"/></svg>
+                </button>
+                <div style="width:10px"></div>
+                <button class="ctrl-btn btn-right" 
+                        ontouchstart="sendMove('R', this)" ontouchend="sendMove('S', this)"
+                        onmousedown="sendMove('R', this)" onmouseup="sendMove('S', this)">
+                    <svg viewBox="0 0 24 24"><path d="M20 12l-8 8V4z"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Tilt/Accel Toggle -->
+        <div class="tilt-wrapper">
+            <span>GYRO_STABILIZER</span>
+            <label class="switch">
+                <input type="checkbox" id="accel-toggle" onchange="toggleAccel(this)">
+                <span class="slider"></span>
+            </label>
+        </div>
+    </div>
+
+    <!-- PID MODE PANEL -->
+    <div id="panel-pid" class="panel">
+        <div style="margin-bottom:20px; color: var(--text-muted); font-size: 0.8rem; text-transform:uppercase; letter-spacing:1px;">
+            // CALIBRATE_SENSORS
+        </div>
+
+        <!-- Kp -->
+        <div class="pid-group">
+            <div class="pid-header">
+                <span>P_GAIN (Kp)</span>
+                <span id="val-kp" class="pid-value">0.0</span>
+            </div>
+            <input type="range" id="range-kp" min="0" max="10" step="0.1" value="0" 
+                   oninput="updatePid('kp', this.value)">
+        </div>
+
+        <!-- Ki -->
+        <div class="pid-group">
+            <div class="pid-header">
+                <span>I_GAIN (Ki)</span>
+                <span id="val-ki" class="pid-value">0.00</span>
+            </div>
+            <input type="range" id="range-ki" min="0" max="5" step="0.01" value="0" 
+                   oninput="updatePid('ki', this.value)">
+        </div>
+
+        <!-- Kd -->
+        <div class="pid-group">
+            <div class="pid-header">
+                <span>D_GAIN (Kd)</span>
+                <span id="val-kd" class="pid-value">0.0</span>
+            </div>
+            <input type="range" id="range-kd" min="0" max="10" step="0.1" value="0" 
+                   oninput="updatePid('kd', this.value)">
+        </div>
+    </div>
+
+    <!-- AI COMMANDER PANEL -->
+    <div id="panel-ai" class="panel">
+        <div class="ai-terminal">
+            <textarea id="ai-prompt" class="ai-input" placeholder="AWAITING COMMAND SEQUENCE..."></textarea>
+            <button id="ai-btn" class="ai-btn" onclick="executeAiCommand()">
+                INITIALIZE SEQUENCE
+            </button>
+            <div id="ai-log" class="ai-log">
+                <div class="log-sys">> SYSTEM READY</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Gemini API Configuration ---
+        const apiKey = ""; // Set your API key here or let the environment handle it
+        
+        // --- Configuration ---
+        const API_BASE = (location.protocol === 'file:' || location.protocol === 'blob:' || location.host === '') 
+                         ? "http://192.168.4.1" 
+                         : ""; 
+        
+        const STATUS_DOT = document.getElementById('status-indicator');
+        
+        let lastPidSent = 0;
+        const PID_THROTTLE_MS = 150; 
+
+        // --- Logging Utility ---
+        function logAi(msg, type='sys') {
+            const logDiv = document.getElementById('ai-log');
+            const entry = document.createElement('div');
+            entry.className = type === 'cmd' ? 'log-entry log-cmd' : 'log-entry log-sys';
+            entry.innerText = `> ${msg}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        /**
+         * Generic API sender
+         */
+        function sendCommand(endpoint) {
+            STATUS_DOT.classList.add('active');
+            try {
+                fetch(API_BASE + endpoint)
+                    .then(response => {
+                        setTimeout(() => STATUS_DOT.classList.remove('active'), 100);
+                    })
+                    .catch(error => {
+                        // console.log('Simulated Send:', API_BASE + endpoint);
+                        setTimeout(() => STATUS_DOT.classList.remove('active'), 100);
+                    });
+            } catch (e) {
+                setTimeout(() => STATUS_DOT.classList.remove('active'), 100);
+            }
+        }
+
+        /**
+         * 1. MODE SWITCHING
+         */
+        function setMode(mode) {
+            document.getElementById('mode-switch').setAttribute('data-mode', mode);
+            
+            document.getElementById('panel-manual').classList.remove('active');
+            document.getElementById('panel-pid').classList.remove('active');
+            document.getElementById('panel-ai').classList.remove('active');
+            document.getElementById('panel-' + mode).classList.add('active');
+
+            sendCommand(`/mode?value=${mode}`);
+        }
+
+        /**
+         * 2. MANUAL REMOTE (Movement)
+         */
+        function sendMove(dir, btnElement) {
+            if(dir === 'S') {
+                document.querySelectorAll('.ctrl-btn').forEach(b => b.classList.remove('pressed'));
+            } else {
+                if(btnElement) btnElement.classList.add('pressed');
+            }
+            sendCommand(`/move?dir=${dir}`);
+        }
+
+        /**
+         * 3. PID TUNING
+         */
+        function updatePid(type, value) {
+            document.getElementById(`val-${type}`).innerText = value;
+            const now = Date.now();
+            if (now - lastPidSent > PID_THROTTLE_MS) {
+                lastPidSent = now;
+                sendCommand(`/pid?${type}=${value}`);
+            }
+        }
+
+        /**
+         * 4. ACCELEROMETER TOGGLE
+         */
+        function toggleAccel(checkbox) {
+            const val = checkbox.checked ? 1 : 0;
+            sendCommand(`/accel?enable=${val}`);
+        }
+
+        /**
+         * 5. AI COMMANDER LOGIC
+         */
+        async function executeAiCommand() {
+            const promptInput = document.getElementById('ai-prompt');
+            const btn = document.getElementById('ai-btn');
+            const prompt = promptInput.value.trim();
+
+            if (!prompt) return;
+
+            btn.disabled = true;
+            btn.innerText = "PROCESSING...";
+            logAi("UPLINK ESTABLISHED...", 'sys');
+
+            try {
+                // 1. Construct System Prompt
+                const systemPrompt = `
+You are a robot motion planner. 
+User will give natural language commands.
+Translate them into a JSON sequence of moves.
+Available commands: F (Forward), B (Backward), L (Left), R (Right), S (Stop).
+Duration is in milliseconds. If not specified, assume 500ms.
+Output format: JSON Array ONLY. 
+Example: [{"cmd":"F", "ms":1000}, {"cmd":"L", "ms":500}, {"cmd":"S", "ms":0}]
+Always end with Stop (S).
+`;
+
+                // 2. Call Gemini API with retries
+                const plan = await callGeminiWithBackoff(systemPrompt, prompt);
+                
+                // 3. Parse JSON
+                let moves = [];
+                try {
+                    // Clean up markdown code blocks if present
+                    const cleanJson = plan.replace(/```json/g, '').replace(/```/g, '').trim();
+                    moves = JSON.parse(cleanJson);
+                } catch (e) {
+                    throw new Error("Failed to parse Gemini plan");
+                }
+
+                // 4. Execute Moves
+                logAi(`PLAN: ${moves.length} SEGMENTS`, 'sys');
+                btn.innerText = "EXECUTING...";
+                
+                for (let i = 0; i < moves.length; i++) {
+                    const step = moves[i];
+                    logAi(`CMD: ${step.cmd} [${step.ms}ms]`, 'cmd');
+                    
+                    // Send Move
+                    sendCommand(`/move?dir=${step.cmd}`);
+                    
+                    // Wait duration
+                    if (step.ms > 0) {
+                        await new Promise(r => setTimeout(r, step.ms));
+                    }
+                }
+                
+                logAi("SEQUENCE COMPLETE", 'sys');
+
+            } catch (error) {
+                logAi("ERR: " + error.message, 'sys');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "INITIALIZE SEQUENCE";
+            }
+        }
+
+        // Gemini API Helper
+        async function callGeminiWithBackoff(systemPrompt, userPrompt) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{ parts: [{ text: userPrompt }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] }
+            };
+
+            const delays = [1000, 2000, 4000, 8000, 16000];
+            
+            for (let i = 0; i < 5; i++) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    
+                    const data = await response.json();
+                    return data.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
+
+                } catch (err) {
+                    if (i === 4) throw err; // Fail after last retry
+                    await new Promise(r => setTimeout(r, delays[i]));
+                }
+            }
+        }
+
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        setMode('manual');
+
+    </script>
+</body>
+</html>
